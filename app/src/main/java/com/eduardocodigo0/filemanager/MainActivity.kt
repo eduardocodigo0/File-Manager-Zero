@@ -1,22 +1,16 @@
 package com.eduardocodigo0.filemanager
 
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
+
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,12 +20,18 @@ import com.eduardocodigo0.filemanager.ui.theme.FileManagerZeroTheme
 import com.eduardocodigo0.filemanager.view.ErrorScreen
 import com.eduardocodigo0.filemanager.view.FileListScreen
 import com.eduardocodigo0.filemanager.view.WelcomeScreen
+import com.eduardocodigo0.filemanager.util.*
 
 
 class MainActivity : ComponentActivity() {
+
+    private val activityResultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-       setContent {
+        setContent {
             FileManagerZeroTheme {
 
                 val navController = rememberNavController()
@@ -40,43 +40,62 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MainContent(navController)
+                    MainContent(navController) {
+                        requestWriteStoragePermission(this, activityResultLauncher)
+                    }
                 }
             }
         }
     }
 }
 
-private fun checkPermission(activity: Activity): Boolean{
-    val permission = ContextCompat.checkSelfPermission(activity,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    return permission == PackageManager.PERMISSION_GRANTED
-}
 
-private fun requestWriteStoragePermission(activity: Activity){
-
-    if(ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-        Toast.makeText(activity, "This app requires the storage permission, please allow from settings", Toast.LENGTH_SHORT).show()
-    }else{
-        ActivityCompat.requestPermissions(activity, arrayOf<String>(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        ), 111)
-    }
-
-}
 
 @Composable
-fun MainContent(navController: NavHostController) {
-    Scaffold() {
-        NavHost(navController = navController, startDestination = Destinations.Companion.WelcomeScreen.route){
-            composable(Destinations.Companion.WelcomeScreen.route){
-               WelcomeScreen(navHostController = navController)
+fun MainContent(navController: NavHostController, requestPermission: () -> Unit) {
+
+    val context = LocalContext.current
+
+    var appBarTitle by remember {
+        mutableStateOf("")
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = appBarTitle,
+                        color = Color.White
+                    )
+                },
+                backgroundColor = Color.Red
+            )
+        }
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = Destinations.Companion.WelcomeScreen.route
+        ) {
+            composable(Destinations.Companion.WelcomeScreen.route) {
+                appBarTitle = Destinations.Companion.WelcomeScreen.title
+                WelcomeScreen() {
+
+                    if (checkPermission(context)) {
+                        navController.navigate(Destinations.Companion.FileListScreen.route)
+                    } else {
+                        requestPermission()
+                    }
+                }
             }
 
-            composable(Destinations.Companion.ErrorScreen.route){
+            composable(Destinations.Companion.ErrorScreen.route) {
+                appBarTitle = Destinations.Companion.ErrorScreen.title
                 ErrorScreen()
             }
 
-            composable(Destinations.Companion.FileListScreen.route){
+            composable(Destinations.Companion.FileListScreen.route) {
+                appBarTitle = Destinations.Companion.FileListScreen.title
                 FileListScreen()
             }
         }

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FileManagerZero</string>
+    <string name="default_log_tag">DEFAULT-LOG</string>
+    <string name="permission_dialog_text">This application requires full file access permission!</string>
+    <string name="permission_denied_text">This app requires the storage permission, please allow from settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="open_setings">Open settings</string>
 </resources>
