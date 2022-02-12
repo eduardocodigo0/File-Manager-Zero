@@ -17,9 +17,6 @@ class FileListViewModel(): ViewModel() {
 
     fun getDirectoryAndFileList(){
         val listFiles = root.listFiles()
-        listFiles.forEach {
-            println("NOME DESSA PORRA: ${it.name} É ARQUIVO? ${it.isFile}")
-        }
         directoryAndFileList = listFiles.asList()
     }
 
