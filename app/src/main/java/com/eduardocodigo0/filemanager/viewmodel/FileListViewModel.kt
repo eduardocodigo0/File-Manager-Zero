@@ -12,9 +12,11 @@ class FileListViewModel(): ViewModel() {
     private var currentDirectory = Environment.getExternalStorageDirectory()
     private var directoryStack = mutableListOf<File>(currentDirectory)
 
+
     var directoryAndFileList by mutableStateOf<List<File>>(listOf())
         private set
 
+    var isSubFolder by mutableStateOf(false)
 
     fun getDirectoryAndFileList(){
         val listFiles = currentDirectory.listFiles()
@@ -22,6 +24,9 @@ class FileListViewModel(): ViewModel() {
         if(directoryStack.last() != currentDirectory){
             directoryStack.add(currentDirectory)
         }
+
+        isSubFolder = directoryStack.size != 1
+
     }
 
     fun changeCurrentDirectory(file: File){
@@ -33,7 +38,7 @@ class FileListViewModel(): ViewModel() {
 
     fun returnToPreviousDirectory(){
         if(directoryStack.size > 1){
-            directoryStack.removeAt(directoryStack.lastIndex)
+            directoryStack.removeLast()
             currentDirectory = directoryStack.last()
             getDirectoryAndFileList()
         }
