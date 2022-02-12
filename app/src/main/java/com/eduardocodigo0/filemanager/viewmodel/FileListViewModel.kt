@@ -9,15 +9,33 @@ import java.io.File
 
 class FileListViewModel(): ViewModel() {
 
-    private val root = Environment.getExternalStorageDirectory()
+    private var currentDirectory = Environment.getExternalStorageDirectory()
+    private var directoryStack = mutableListOf<File>(currentDirectory)
 
     var directoryAndFileList by mutableStateOf<List<File>>(listOf())
         private set
 
 
     fun getDirectoryAndFileList(){
-        val listFiles = root.listFiles()
+        val listFiles = currentDirectory.listFiles()
         directoryAndFileList = listFiles.asList()
+        if(directoryStack.last() != currentDirectory){
+            directoryStack.add(currentDirectory)
+        }
     }
 
+    fun changeCurrentDirectory(file: File){
+        if (file.isDirectory){
+            currentDirectory = file
+            getDirectoryAndFileList()
+        }
+    }
+
+    fun returnToPreviousDirectory(){
+        if(directoryStack.size > 1){
+            directoryStack.removeAt(directoryStack.lastIndex)
+            currentDirectory = directoryStack.last()
+            getDirectoryAndFileList()
+        }
+    }
 }

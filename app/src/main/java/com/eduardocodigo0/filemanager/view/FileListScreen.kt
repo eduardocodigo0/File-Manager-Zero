@@ -1,5 +1,6 @@
 package com.eduardocodigo0.filemanager.view
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,16 +12,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.eduardocodigo0.filemanager.R
+import com.eduardocodigo0.filemanager.util.FileType
+import com.eduardocodigo0.filemanager.util.getFileTypeFromName
+import com.eduardocodigo0.filemanager.util.openFile
 import com.eduardocodigo0.filemanager.viewmodel.FileListViewModel
+import java.io.File
 
 @Composable
 fun FileListScreen(viewModel: FileListViewModel = viewModel()){
+
+    val context = LocalContext.current
 
     viewModel.getDirectoryAndFileList()
     val directoryList = viewModel.directoryAndFileList
@@ -28,7 +35,16 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()){
     if (directoryList.isNotEmpty()){
         LazyColumn(modifier = Modifier.padding(vertical = 16.dp)){
             items(directoryList){
-                FileListItem(name = it.name, isDirectory = it.isDirectory)
+                FileListItem(it, {
+                    viewModel.changeCurrentDirectory(it)
+                }){
+                    try{
+                        openFile(it, context)
+                    }catch (err: Exception){
+                        Toast.makeText(context, "Cannot open this file", Toast.LENGTH_SHORT).show()
+                    }
+
+                }
             }
         }
     }else{
@@ -45,23 +61,49 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()){
 
 
 @Composable
-fun FileListItem(name: String, isDirectory: Boolean){
+fun FileListItem(file: File, openDirectory: () -> Unit, openFile: () -> Unit){
     Row(verticalAlignment = Alignment.CenterVertically
         ,modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
             .clickable {
-
+                if (file.isDirectory){
+                    openDirectory()
+                }else{
+                    openFile()
+                }
             }
     ){
         Spacer(modifier = Modifier.width(16.dp))
         Image(
-            painter = painterResource(id = if(isDirectory){
+            painter = painterResource(id = if(file.isDirectory){
                 R.drawable.ic_folder
             }else{
-                R.drawable.ic_file
+                when(getFileTypeFromName(file.name)){
+
+                    FileType.GIF, FileType.IMAGE ->{
+                        R.drawable.ic_image
+                    }
+
+                    FileType.MSDOC, FileType.MSPPT, FileType.MSXLS, FileType.PDF, FileType.TXT ->{
+                        R.drawable.ic_file
+                    }
+
+                    FileType.SOUND -> {
+                        R.drawable.ic_music
+                    }
+
+                    FileType.VIDEO -> {
+                        R.drawable.ic_video
+                    }
+
+                    else ->{
+                         R.drawable.ic_any
+                    }
+                }
+
             }),
-            contentDescription = name,
+            contentDescription = file.name,
             modifier = Modifier
                 .padding(2.dp)
                 .scale(2F)
@@ -69,7 +111,7 @@ fun FileListItem(name: String, isDirectory: Boolean){
         Spacer(modifier = Modifier.width(16.dp))
         
         Text(
-            text = name,
+            text = file.name,
             modifier = Modifier.padding(2.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -77,10 +119,4 @@ fun FileListItem(name: String, isDirectory: Boolean){
         )
     }
     Divider()
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FileListPreview(){
-    FileListItem("Downloads", false)
 }
