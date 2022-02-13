@@ -37,14 +37,15 @@ class FileListViewModel() : ViewModel() {
         private set
 
     fun getDirectoryAndFileList() {
-        val listFiles = currentDirectory.listFiles()
-        directoryAndFileList = listFiles.asList().sortedBy { it.name }
-        if (directoryStack.last() != currentDirectory) {
-            directoryStack.add(currentDirectory)
+        viewModelScope.launch(Dispatchers.IO){
+            val listFiles = currentDirectory.listFiles()
+            directoryAndFileList = listFiles.asList().sortedBy { it.name }
+            if (directoryStack.last() != currentDirectory) {
+                directoryStack.add(currentDirectory)
+            }
+
+            isSubFolder = directoryStack.size != 1
         }
-
-        isSubFolder = directoryStack.size != 1
-
     }
 
     fun changeCurrentDirectory(file: File) {
