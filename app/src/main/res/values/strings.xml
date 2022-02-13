@@ -7,6 +7,9 @@
     <string name="permission_dialog_text">This application requires full file access permission!</string>
     <string name="permission_denied_text">This app requires the storage permission, please allow from settings</string>
     <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="rename">Rename</string>
     <string name="file_list_back">Go back</string>
     <string name="file_list_files_cannot_open">Cannot open this file</string>
     <string name="file_list_files_not_found">No files found</string>
@@ -15,4 +18,14 @@
     <string name="popup_menu_rename">Rename</string>
     <string name="popup_menu_delete">Delete</string>
     <string name="popup_menu_move">Move</string>
+    <string name="delete_success">Item has been successfully deleted</string>
+    <string name="delete_fail">Item deletion failed</string>
+    <string name="move_success">Item has been successfully moved</string>
+    <string name="move_fail">Item to move file</string>
+    <string name="rename_success">Item has been successfully renamed</string>
+    <string name="rename_fail">Item to rename file</string>
+    <string name="delete_dialog_caption">Delete file</string>
+    <string name="delete_dialog_msg">Are you sure you want to delete this item?</string>
+    <string name="rename_dialog_caption">Rename file</string>
+    <string name="rename_dialog_place_holder">Type the new name</string>
 </resources>

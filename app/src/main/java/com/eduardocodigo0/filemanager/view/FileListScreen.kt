@@ -8,10 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Divider
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,8 +22,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.eduardocodigo0.filemanager.R
 import com.eduardocodigo0.filemanager.util.FileType
+import com.eduardocodigo0.filemanager.util.StateHolder
 import com.eduardocodigo0.filemanager.util.getFileTypeFromName
 import com.eduardocodigo0.filemanager.util.openFile
+import com.eduardocodigo0.filemanager.view.components.DeleteDialog
+import com.eduardocodigo0.filemanager.view.components.RenameDialog
 import com.eduardocodigo0.filemanager.viewmodel.FileListViewModel
 import java.io.File
 
@@ -40,6 +40,52 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
     val directoryList = viewModel.directoryAndFileList
     val isSubFolder = viewModel.isSubFolder
 
+    val deleteState by viewModel.deletionState.collectAsState()
+    val renameState by viewModel.renameState.collectAsState()
+    val moveState by viewModel.moveState.collectAsState()
+
+    when (deleteState) {
+        is StateHolder.Success -> {
+            Toast.makeText(
+                context,
+                stringResource(id = R.string.delete_success),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is StateHolder.Fail -> {
+            Toast.makeText(context, stringResource(id = R.string.delete_fail), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    when (renameState) {
+        is StateHolder.Success -> {
+            Toast.makeText(
+                context,
+                stringResource(id = R.string.rename_success),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        is StateHolder.Fail -> {
+            Toast.makeText(context, stringResource(id = R.string.rename_fail), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    when (moveState) {
+        is StateHolder.Success -> {
+            Toast.makeText(context, stringResource(id = R.string.move_success), Toast.LENGTH_SHORT)
+                .show()
+        }
+
+        is StateHolder.Fail -> {
+            Toast.makeText(context, stringResource(id = R.string.move_fail), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
     Column() {
         if (isSubFolder) {
             FileManagerBackButton {
@@ -49,13 +95,27 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
         if (directoryList.isNotEmpty()) {
             LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
                 items(directoryList) {
-                    FileListItem(it, {
-                        viewModel.changeCurrentDirectory(it)
-                    }) {
+                    FileListItem(it,
+                        { file ->
+                            viewModel.deleteFile(file)
+                        },
+                        { file, newName ->
+                            viewModel.renameFile(file, newName)
+                        },
+                        { file ->
+                            viewModel.setFileToBeMoved(file)
+                        },
+                        {
+                            viewModel.changeCurrentDirectory(it)
+                        }) {
                         try {
                             openFile(it, context)
                         } catch (err: Exception) {
-                            Toast.makeText(context, context.getText(R.string.file_list_files_cannot_open), Toast.LENGTH_SHORT)
+                            Toast.makeText(
+                                context,
+                                context.getText(R.string.file_list_files_cannot_open),
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
                     }
@@ -78,9 +138,18 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FileListItem(file: File, openDirectory: () -> Unit, openFile: () -> Unit) {
+fun FileListItem(
+    file: File,
+    deleteFile: (File) -> Unit,
+    renameFile: (File, String) -> Unit,
+    setFileToMove: (File) -> Unit,
+    openDirectory: () -> Unit,
+    openFile: () -> Unit
+) {
 
     var expanded by remember { mutableStateOf(false) }
+    var openDeleteDialog by remember { mutableStateOf(false) }
+    var openRenameDialog by remember { mutableStateOf(false) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = Modifier
@@ -151,21 +220,41 @@ fun FileListItem(file: File, openDirectory: () -> Unit, openFile: () -> Unit) {
             offset = DpOffset(32.dp, 0.dp)
         ) {
 
-            DropdownMenuItem(onClick = { TODO() }) {
+            DropdownMenuItem(onClick = {
+                //renameFile(file, "BobSponja")
+                expanded = false
+                openRenameDialog = true
+            }) {
                 Text(stringResource(id = R.string.popup_menu_rename))
             }
             Divider()
-            DropdownMenuItem(onClick = { TODO() }) {
+            DropdownMenuItem(onClick = {
+                expanded = false
+                openDeleteDialog = true
+
+            }) {
                 Text(stringResource(id = R.string.popup_menu_delete))
             }
             Divider()
             DropdownMenuItem(onClick = { TODO() }) {
                 Text(stringResource(id = R.string.popup_menu_move))
             }
-            
+
         }
     }
     Divider()
+
+
+    if (openDeleteDialog) {
+        DeleteDialog(dismis = { openDeleteDialog = false }) {
+            deleteFile(file)
+        }
+    }
+    if(openRenameDialog){
+        RenameDialog(dismis = { openRenameDialog = false }) {
+            renameFile(file, it)
+        }
+    }
 }
 
 @Composable
