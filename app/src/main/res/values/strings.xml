@@ -1,8 +1,18 @@
 <resources>
     <string name="app_name">FileManagerZero</string>
+    <string name="welcome_to">Wellcome to:</string>
+    <string name="file_manager">File Manager</string>
+    <string name="logo_content_descriprion">File manager zero logo</string>
     <string name="default_log_tag">DEFAULT-LOG</string>
     <string name="permission_dialog_text">This application requires full file access permission!</string>
     <string name="permission_denied_text">This app requires the storage permission, please allow from settings</string>
     <string name="cancel">Cancel</string>
+    <string name="file_list_back">Go back</string>
+    <string name="file_list_files_cannot_open">Cannot open this file</string>
+    <string name="file_list_files_not_found">No files found</string>
     <string name="open_setings">Open settings</string>
+    <string name="open_files_button_text">Open Files</string>
+    <string name="popup_menu_rename">Rename</string>
+    <string name="popup_menu_delete">Delete</string>
+    <string name="popup_menu_move">Move</string>
 </resources>

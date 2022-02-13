@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,7 +37,7 @@ fun WelcomeScreen(openFilesBtnAction: () -> Unit){
 
         Spacer(modifier = Modifier.height(26.dp))
         Text(
-            text = "Wellcome to:",
+            text = stringResource(id = R.string.welcome_to),
             textAlign = TextAlign.Center,
             fontSize = 16.sp,
 
@@ -44,13 +45,13 @@ fun WelcomeScreen(openFilesBtnAction: () -> Unit){
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "File Manager",
+            text = stringResource(id = R.string.file_manager),
             textAlign = TextAlign.Center,
             fontSize = 32.sp,
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        Image(painterResource(id = R.drawable.logo), "Logo",
+        Image(painterResource(id = R.drawable.logo), stringResource(id = R.string.logo_content_descriprion),
             modifier = Modifier.padding(32.dp)
             )
 
@@ -62,7 +63,7 @@ fun WelcomeScreen(openFilesBtnAction: () -> Unit){
             colors = ButtonDefaults.buttonColors(Color.Red)
         ) {
             Text(
-                text = "Open Files",
+                text = stringResource(id = R.string.open_files_button_text),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp

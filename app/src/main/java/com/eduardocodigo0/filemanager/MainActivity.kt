@@ -17,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.eduardocodigo0.filemanager.navigation.Destinations
 import com.eduardocodigo0.filemanager.ui.theme.FileManagerZeroTheme
-import com.eduardocodigo0.filemanager.view.ErrorScreen
 import com.eduardocodigo0.filemanager.view.FileListScreen
 import com.eduardocodigo0.filemanager.view.WelcomeScreen
 import com.eduardocodigo0.filemanager.util.*
@@ -87,11 +86,6 @@ fun MainContent(navController: NavHostController, requestPermission: () -> Unit)
                         requestPermission()
                     }
                 }
-            }
-
-            composable(Destinations.Companion.ErrorScreen.route) {
-                appBarTitle = Destinations.Companion.ErrorScreen.title
-                ErrorScreen()
             }
 
             composable(Destinations.Companion.FileListScreen.route) {
