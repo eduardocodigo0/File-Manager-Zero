@@ -60,7 +60,11 @@ fun openFile(file: File, context: Context) {
 
 fun fileDelete(file: File): Boolean {
     return try {
-        file.delete()
+        if(file.isDirectory){
+            file.deleteRecursively()
+        }else{
+            file.delete()
+        }
         true
     } catch (err: Exception) {
         false
@@ -69,8 +73,13 @@ fun fileDelete(file: File): Boolean {
 
 fun fileRename(file: File, directory: File, newName: String): Boolean {
     return try {
-        val extension = file.name.split(".").last()
-        file.renameTo(File(directory, "$newName.$extension"))
+        val extension = if(file.isDirectory){
+            ""
+        }else{
+            ".${file.name.split(".").last()}"
+        }
+
+        file.renameTo(File(directory, "$newName$extension"))
         true
     } catch (err: Exception) {
         false

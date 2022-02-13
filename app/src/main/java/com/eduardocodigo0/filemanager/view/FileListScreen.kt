@@ -22,10 +22,7 @@ import com.eduardocodigo0.filemanager.util.FileType
 import com.eduardocodigo0.filemanager.util.StateHolder
 import com.eduardocodigo0.filemanager.util.getFileTypeFromName
 import com.eduardocodigo0.filemanager.util.openFile
-import com.eduardocodigo0.filemanager.view.components.CopyFileSnack
-import com.eduardocodigo0.filemanager.view.components.DeleteDialog
-import com.eduardocodigo0.filemanager.view.components.FileManagerBackButton
-import com.eduardocodigo0.filemanager.view.components.RenameDialog
+import com.eduardocodigo0.filemanager.view.components.*
 import com.eduardocodigo0.filemanager.viewmodel.FileListViewModel
 import java.io.File
 
@@ -151,130 +148,6 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
                     Text(text = context.getText(R.string.file_list_files_not_found).toString())
                 }
             }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun FileListItem(
-    file: File,
-    deleteFile: (File) -> Unit,
-    renameFile: (File, String) -> Unit,
-    setFileToMove: (File) -> Unit,
-    openDirectory: () -> Unit,
-    openFile: () -> Unit
-) {
-
-    var expanded by remember { mutableStateOf(false) }
-    var openDeleteDialog by remember { mutableStateOf(false) }
-    var openRenameDialog by remember { mutableStateOf(false) }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .combinedClickable(
-
-                onClick = {
-                    if (file.isDirectory) {
-                        openDirectory()
-                    } else {
-                        openFile()
-                    }
-                },
-                onLongClick = {
-                    expanded = true
-                },
-            )
-    ) {
-        Spacer(modifier = Modifier.width(16.dp))
-        Image(
-            painter = painterResource(
-                id = if (file.isDirectory) {
-                    R.drawable.ic_folder
-                } else {
-                    when (getFileTypeFromName(file.name)) {
-
-                        FileType.GIF, FileType.IMAGE -> {
-                            R.drawable.ic_image
-                        }
-
-                        FileType.MSDOC, FileType.MSPPT, FileType.MSXLS, FileType.PDF, FileType.TXT -> {
-                            R.drawable.ic_file
-                        }
-
-                        FileType.SOUND -> {
-                            R.drawable.ic_music
-                        }
-
-                        FileType.VIDEO -> {
-                            R.drawable.ic_video
-                        }
-
-                        else -> {
-                            R.drawable.ic_any
-                        }
-                    }
-
-                }
-            ),
-            contentDescription = file.name,
-            modifier = Modifier
-                .padding(2.dp)
-                .scale(2F)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Text(
-            text = file.name,
-            modifier = Modifier.padding(2.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            offset = DpOffset(32.dp, 0.dp)
-        ) {
-
-            DropdownMenuItem(onClick = {
-                expanded = false
-                openRenameDialog = true
-            }) {
-                Text(stringResource(id = R.string.popup_menu_rename))
-            }
-            Divider()
-            DropdownMenuItem(onClick = {
-                expanded = false
-                openDeleteDialog = true
-
-            }) {
-                Text(stringResource(id = R.string.popup_menu_delete))
-            }
-            Divider()
-            DropdownMenuItem(onClick = {
-                expanded = false
-                setFileToMove(file)
-            }) {
-                Text(stringResource(id = R.string.popup_copy_move))
-            }
-
-        }
-    }
-    Divider()
-
-
-    if (openDeleteDialog) {
-        DeleteDialog(dismis = { openDeleteDialog = false }) {
-            deleteFile(file)
-        }
-    }
-    if (openRenameDialog) {
-        RenameDialog(dismis = { openRenameDialog = false }) {
-            renameFile(file, it)
         }
     }
 }
