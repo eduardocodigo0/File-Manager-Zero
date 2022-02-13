@@ -7,32 +7,39 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eduardocodigo0.filemanager.util.StateHolder
+import com.eduardocodigo0.filemanager.util.fileCopy
+import com.eduardocodigo0.filemanager.util.fileDelete
+import com.eduardocodigo0.filemanager.util.fileRename
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import java.io.File
+import java.io.*
 
-class FileListViewModel(): ViewModel() {
+
+class FileListViewModel() : ViewModel() {
 
     private var currentDirectory = Environment.getExternalStorageDirectory()
     private var directoryStack = mutableListOf<File>(currentDirectory)
 
-    var fileToBeMoved = mutableStateOf<File?>(null)
-    private set
+    var fileToCopy = mutableStateOf<File?>(null)
+        private set
 
-    var deletionState = MutableStateFlow<StateHolder>(StateHolder.None())
-    var renameState= MutableStateFlow<StateHolder>(StateHolder.None())
-    var moveState = MutableStateFlow<StateHolder>(StateHolder.None())
+    var deletionState by mutableStateOf<StateHolder>(StateHolder.None())
+        private set
+    var renameState by mutableStateOf<StateHolder>(StateHolder.None())
+        private set
+    var copyState by mutableStateOf<StateHolder>(StateHolder.None())
+        private set
 
     var directoryAndFileList by mutableStateOf<List<File>>(listOf())
         private set
 
     var isSubFolder by mutableStateOf(false)
+        private set
 
-    fun getDirectoryAndFileList(){
+    fun getDirectoryAndFileList() {
         val listFiles = currentDirectory.listFiles()
-        directoryAndFileList = listFiles.asList()
-        if(directoryStack.last() != currentDirectory){
+        directoryAndFileList = listFiles.asList().sortedBy { it.name }
+        if (directoryStack.last() != currentDirectory) {
             directoryStack.add(currentDirectory)
         }
 
@@ -40,70 +47,66 @@ class FileListViewModel(): ViewModel() {
 
     }
 
-    fun changeCurrentDirectory(file: File){
-        if (file.isDirectory){
+    fun changeCurrentDirectory(file: File) {
+        if (file.isDirectory) {
             currentDirectory = file
             getDirectoryAndFileList()
         }
     }
 
-    fun returnToPreviousDirectory(){
-        if(directoryStack.size > 1){
+    fun returnToPreviousDirectory() {
+        if (directoryStack.size > 1) {
             directoryStack.removeLast()
             currentDirectory = directoryStack.last()
             getDirectoryAndFileList()
         }
     }
 
-    fun deleteFile(file: File){
-        viewModelScope.launch(Dispatchers.IO){
-            try {
-                file.delete()
-                deletionState.emit(StateHolder.Success())
-                getDirectoryAndFileList()
-            }catch (err:Exception){
-                deletionState.emit(StateHolder.Fail())
+    fun deleteFile(file: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if(fileDelete(file)){
+                deletionState = StateHolder.Success()
+            }else{
+                deletionState = StateHolder.Fail()
             }
-            renameState.emit(StateHolder.None())
+            getDirectoryAndFileList()
         }
     }
 
-    fun setFileToBeMoved(file: File?){
-        fileToBeMoved.value = file
+    fun setFileToCopy(file: File?) {
+        fileToCopy.value = file
     }
 
-    fun moveFile(){
-        viewModelScope.launch(Dispatchers.IO){
-            fileToBeMoved.value?.also { file ->
-                try{
-                    file.copyTo(currentDirectory)
-                    file.delete()
-                    moveState.emit(StateHolder.Success())
-                    getDirectoryAndFileList()
-                    setFileToBeMoved(null)
-                }catch (err:Exception){
-                    moveState.emit(StateHolder.Fail())
-                    setFileToBeMoved(null)
+    fun copyFile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            fileToCopy.value?.also { file ->
+                if (fileCopy(currentDirectory, file)) {
+                    copyState = StateHolder.Success()
+                } else {
+                    copyState = StateHolder.Fail()
                 }
-            } ?: run{
-                moveState.emit(StateHolder.None())
             }
-            renameState.emit(StateHolder.None())
+            setFileToCopy(null)
+            getDirectoryAndFileList()
         }
     }
 
-    fun renameFile(file: File, newName: String){
-        viewModelScope.launch(Dispatchers.IO){
-            try{
-                val extension = file.name.split(".").last()
-                file.renameTo(File(currentDirectory, "$newName.$extension"))
-                renameState.emit(StateHolder.Success())
-                getDirectoryAndFileList()
-            }catch (err: Exception){
-                renameState.emit(StateHolder.Fail())
+    fun renameFile(file: File, newName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (fileRename(file, currentDirectory, newName)) {
+                renameState = StateHolder.Success()
+            } else {
+                renameState = StateHolder.Fail()
             }
-            renameState.emit(StateHolder.None())
+            getDirectoryAndFileList()
         }
     }
 
+    fun cleanOperationStates(){
+        viewModelScope.launch {
+            renameState = StateHolder.None()
+            deletionState = StateHolder.None()
+            copyState = StateHolder.None()
+        }
+    }
 }

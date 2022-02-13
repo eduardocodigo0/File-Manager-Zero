@@ -17,15 +17,18 @@
     <string name="open_files_button_text">Open Files</string>
     <string name="popup_menu_rename">Rename</string>
     <string name="popup_menu_delete">Delete</string>
-    <string name="popup_menu_move">Move</string>
+    <string name="popup_copy_move">Copy</string>
     <string name="delete_success">Item has been successfully deleted</string>
     <string name="delete_fail">Item deletion failed</string>
-    <string name="move_success">Item has been successfully moved</string>
-    <string name="move_fail">Item to move file</string>
+    <string name="copy_success">Item has been successfully copied</string>
+    <string name="copy_fail">Failed to copy file</string>
     <string name="rename_success">Item has been successfully renamed</string>
-    <string name="rename_fail">Item to rename file</string>
+    <string name="rename_fail">Failed to rename file</string>
     <string name="delete_dialog_caption">Delete file</string>
     <string name="delete_dialog_msg">Are you sure you want to delete this item?</string>
     <string name="rename_dialog_caption">Rename file</string>
     <string name="rename_dialog_place_holder">Type the new name</string>
+    <string name="copy_snack_text">Copy item to…</string>
+    <string name="copy_snack_here">Here</string>
+    <string name="copy_snack_cancel">Cancel</string>
 </resources>

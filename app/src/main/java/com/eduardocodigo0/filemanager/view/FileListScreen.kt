@@ -1,10 +1,7 @@
 package com.eduardocodigo0.filemanager.view
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +22,9 @@ import com.eduardocodigo0.filemanager.util.FileType
 import com.eduardocodigo0.filemanager.util.StateHolder
 import com.eduardocodigo0.filemanager.util.getFileTypeFromName
 import com.eduardocodigo0.filemanager.util.openFile
+import com.eduardocodigo0.filemanager.view.components.CopyFileSnack
 import com.eduardocodigo0.filemanager.view.components.DeleteDialog
+import com.eduardocodigo0.filemanager.view.components.FileManagerBackButton
 import com.eduardocodigo0.filemanager.view.components.RenameDialog
 import com.eduardocodigo0.filemanager.viewmodel.FileListViewModel
 import java.io.File
@@ -40,9 +39,11 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
     val directoryList = viewModel.directoryAndFileList
     val isSubFolder = viewModel.isSubFolder
 
-    val deleteState by viewModel.deletionState.collectAsState()
-    val renameState by viewModel.renameState.collectAsState()
-    val moveState by viewModel.moveState.collectAsState()
+    val deleteState = viewModel.deletionState
+    val renameState = viewModel.renameState
+    val copyState = viewModel.copyState
+
+    val fileToCopy by viewModel.fileToCopy
 
     when (deleteState) {
         is StateHolder.Success -> {
@@ -51,11 +52,13 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
                 stringResource(id = R.string.delete_success),
                 Toast.LENGTH_SHORT
             ).show()
+            viewModel.cleanOperationStates()
         }
 
         is StateHolder.Fail -> {
             Toast.makeText(context, stringResource(id = R.string.delete_fail), Toast.LENGTH_SHORT)
                 .show()
+            viewModel.cleanOperationStates()
         }
     }
 
@@ -66,27 +69,44 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
                 stringResource(id = R.string.rename_success),
                 Toast.LENGTH_SHORT
             ).show()
+            viewModel.cleanOperationStates()
         }
 
         is StateHolder.Fail -> {
             Toast.makeText(context, stringResource(id = R.string.rename_fail), Toast.LENGTH_SHORT)
                 .show()
+            viewModel.cleanOperationStates()
         }
     }
 
-    when (moveState) {
+    when (copyState) {
         is StateHolder.Success -> {
-            Toast.makeText(context, stringResource(id = R.string.move_success), Toast.LENGTH_SHORT)
+            Toast.makeText(context, stringResource(id = R.string.copy_success), Toast.LENGTH_SHORT)
                 .show()
+            viewModel.cleanOperationStates()
         }
 
         is StateHolder.Fail -> {
-            Toast.makeText(context, stringResource(id = R.string.move_fail), Toast.LENGTH_SHORT)
+            Toast.makeText(context, stringResource(id = R.string.copy_fail), Toast.LENGTH_SHORT)
                 .show()
+            viewModel.cleanOperationStates()
         }
     }
 
+
+
     Column() {
+        if (fileToCopy != null) {
+            CopyFileSnack(
+                {
+                    viewModel.setFileToCopy(null)
+                }
+            ) {
+                viewModel.copyFile()
+            }
+        }
+
+
         if (isSubFolder) {
             FileManagerBackButton {
                 viewModel.returnToPreviousDirectory()
@@ -103,7 +123,7 @@ fun FileListScreen(viewModel: FileListViewModel = viewModel()) {
                             viewModel.renameFile(file, newName)
                         },
                         { file ->
-                            viewModel.setFileToBeMoved(file)
+                            viewModel.setFileToCopy(file)
                         },
                         {
                             viewModel.changeCurrentDirectory(it)
@@ -221,7 +241,6 @@ fun FileListItem(
         ) {
 
             DropdownMenuItem(onClick = {
-                //renameFile(file, "BobSponja")
                 expanded = false
                 openRenameDialog = true
             }) {
@@ -236,8 +255,11 @@ fun FileListItem(
                 Text(stringResource(id = R.string.popup_menu_delete))
             }
             Divider()
-            DropdownMenuItem(onClick = { TODO() }) {
-                Text(stringResource(id = R.string.popup_menu_move))
+            DropdownMenuItem(onClick = {
+                expanded = false
+                setFileToMove(file)
+            }) {
+                Text(stringResource(id = R.string.popup_copy_move))
             }
 
         }
@@ -250,38 +272,9 @@ fun FileListItem(
             deleteFile(file)
         }
     }
-    if(openRenameDialog){
+    if (openRenameDialog) {
         RenameDialog(dismis = { openRenameDialog = false }) {
             renameFile(file, it)
         }
-    }
-}
-
-@Composable
-fun FileManagerBackButton(action: () -> Unit) {
-    Spacer(modifier = Modifier.height(16.dp))
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .clickable {
-                action()
-            }
-    ) {
-        Spacer(modifier = Modifier.width(16.dp))
-        Image(
-            painter = painterResource(id = R.drawable.ic_back),
-            contentDescription = stringResource(id = R.string.file_list_back),
-            modifier = Modifier
-                .padding(2.dp)
-                .scale(2F)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = stringResource(id = R.string.file_list_back),
-            modifier = Modifier.padding(2.dp),
-        )
-
     }
 }
